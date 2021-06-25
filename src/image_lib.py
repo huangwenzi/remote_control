@@ -18,7 +18,7 @@ def get_monitor_size():
     height = root.winfo_screenheight()
     return width,height
 
-# 获取屏幕截图数组
+# 获取屏幕截图列表
 def get_screenshot_list(region = False):
     # img = ImageGrab.grab() 略慢
     # img = pyautogui.screenshot()
@@ -37,7 +37,7 @@ def get_screenshot_list(region = False):
     # img.save('image/as_1.png')
     return list
 
-# 获取图片地址转数组
+# 获取图片地址转列表
 def get_list_by_path(path):
     img = Image.open(path)
     # 这里获得的是np数组 注意dtype
@@ -47,7 +47,7 @@ def get_list_by_path(path):
     # img.save('image/as_1.png')
     return list
 
-# 数组转图片
+# 列表转图片
 def list_to_image(array):
     # 转np数组 注意dtype
     array = np.array(array, dtype="uint8")
@@ -57,11 +57,12 @@ def list_to_image(array):
 
 # 获取变化的区域列表
 def get_change_list(old_img_list, img_list):
+    ret_list = []
     # 高度，宽度
     max_x = len(img_list)
     max_y = len(img_list[0])
     if len(old_img_list) == 0:
-        return [[0, 0, len(img_list), len(img_list[0])], img_list]
+        return [[0, 0, len(img_list), len(img_list[0])]]
     
     x_block_num = math.ceil(max_x/block_size)
     y_block_num = math.ceil(max_y/block_size)
@@ -72,8 +73,12 @@ def get_change_list(old_img_list, img_list):
             # 起始点
             begin_pos = [x_block*block_size, y_block*block_size]
             end_pos = [(x_block+1)*block_size, (y_block+1)*block_size]
+            ret, ret_range = list_is_identical(old_img_list, img_list, begin_pos, end_pos)
+            if not ret:
+                ret_list.append(ret_range)
+    return ret_list
 
-# 两个数组，开始到结束的位置是否相同
+# 两个列表，开始到结束的位置是否相同
 def list_is_identical(list_a, list_b, begin_pos, end_pos):
     # 根据list修改end_pos
     a_max_x = len(list_a)
@@ -82,14 +87,40 @@ def list_is_identical(list_a, list_b, begin_pos, end_pos):
     b_max_y = len(list_b[0])
     min_x = min([a_max_x, b_max_x, end_pos[0]])
     min_y = min([a_max_y, b_max_y, end_pos[1]])
-    
-    
+    # 遍历
+    for pos_x in range(begin_pos[0], min_x):
+        for pos_y in range(begin_pos[1], min_y):
+            a_pos = list_a[pos_x][pos_y]
+            b_pos = list_b[pos_x][pos_y]
+            if a_pos != b_pos:
+                return False,[begin_pos ++ [min_x, min_y]]
+    return True,[]
 
+# 根据范围获取图片列表
+def get_list_buy_range(img_list, img_range):
+    # 数组才能直接转
+    # return img_list[img_range[0]:img_range[2], img_range[1]:img_range[3]]
+    # 提取列表的数据
+    ret_list = []
+    for x_pos in range(img_range[0], img_range[2]):
+        y_list = []
+        for y_pos in range(img_range[1], img_range[3]):
+            y_list.append(img_list[x_pos][y_pos])
+        ret_list.append(y_list)
+    return ret_list
+
+# old_img_list = get_list_by_path('image/as_1.png')
+# ret_list = get_list_buy_range(old_img_list, [0,0,100,200])
+# img = list_to_image(ret_list)
+# img.save('image/as_11.png')
 
 old_img_list = get_list_by_path('image/as_1.png')
 img_list = get_list_by_path('image/as_2.png')
-get_change_list(old_img_list, img_list)
-
+ret_list = get_change_list(old_img_list, img_list)
+send_list = []
+for list_range in ret_list:
+    ret_range_list = get_list_buy_range(img_list, list_range)
+    send_list.append([list_range, ret_range_list])
 
 
 # list = image_to_list(get_screenshot())

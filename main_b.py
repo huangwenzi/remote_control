@@ -59,12 +59,16 @@ while True:
     # img_list = ImageLib.get_screenshot_list([0,0,300,300])
     img_list = ImageLib.get_screenshot_list()
     # 获取变化的位置
-    ImageLib.get_change_list(old_img_list, img_list)
+    ret_list = ImageLib.get_change_list(old_img_list, img_list)
+    send_list = []
+    for list_range in ret_list:
+        ret_range_list = ImageLib.get_list_buy_range(img_list, list_range)
+        send_list.append([list_range, ret_range_list])
     
     # json数据太大
     # send_str = bytes(json.dumps(img_list), encoding="utf-8")
     # send_str_len = len(send_str)
-    packd = msgpack.packb(img_list)
+    packd = msgpack.packb(send_list)
     packd_len = len(packd)
     # print(time.time())
     # print("tmp_client send:%s"%(packd_len))
