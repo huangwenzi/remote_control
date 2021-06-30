@@ -8,6 +8,7 @@ import msgpack
 
 
 import src.image_lib as ImageLib
+import src.cfg as Cfg
 
 # 客户端列表
 client_list = []
@@ -56,36 +57,36 @@ old_img_list = []
 # 循环发送截图
 while True:
     # 获取截图数组
-    # img_list = ImageLib.get_screenshot_list([0,0,300,300])
-    img_list = ImageLib.get_screenshot_list()
+    img_list = ImageLib.get_screenshot_list(Cfg.img_range)
+    # img_list = ImageLib.get_screenshot_list()
     # 获取变化的位置
     ret_list = ImageLib.get_change_list(old_img_list, img_list)
-    send_list = []
+    send_list = []#[[位置范围，图片数组]]
     for list_range in ret_list:
         ret_range_list = ImageLib.get_list_buy_range(img_list, list_range)
         send_list.append([list_range, ret_range_list])
     
-    # json数据太大
-    # send_str = bytes(json.dumps(img_list), encoding="utf-8")
-    # send_str_len = len(send_str)
-    packd = msgpack.packb(send_list)
-    packd_len = len(packd)
-    # print(time.time())
-    # print("tmp_client send:%s"%(packd_len))
-    # 发送文件
-    for tmp_client in list(client_list):
-        try:
-            # 先发数据大小
-            # int转字节
-            packd_len_byte = packd_len.to_bytes(4,byteorder='big', signed=False)
-            tmp_client.send(packd_len_byte)
-            tmp_client.send(packd)
-        except Exception as err:
-            print("tmp_client send err")
-            print(err)
-            client_list.remove(tmp_client)
-    old_img_list = img_list
-    time.sleep(0.05)
+    # 有变化才同步
+    if len(send_list) > 0:
+        # json数据太大
+        # send_str = bytes(json.dumps(img_list), encoding="utf-8")
+        # send_str_len = len(send_str)
+        packd = msgpack.packb(send_list)
+        packd_len = len(packd)
+        # 发送文件
+        for tmp_client in list(client_list):
+            try:
+                # 先发数据大小
+                # int转字节
+                packd_len_byte = packd_len.to_bytes(4,byteorder='big', signed=False)
+                tmp_client.send(packd_len_byte)
+                tmp_client.send(packd)
+            except Exception as err:
+                print("tmp_client send err")
+                print(err)
+                client_list.remove(tmp_client)
+        old_img_list = img_list
+    time.sleep(Cfg.send_sleep)
 
 
 

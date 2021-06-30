@@ -7,8 +7,7 @@ import time
 import math
 
 
-# 图片块大小
-block_size = 100
+import src.cfg as Cfg
 
 
 # 获取显示器大小
@@ -57,6 +56,7 @@ def list_to_image(array):
 
 # 获取变化的区域列表
 def get_change_list(old_img_list, img_list):
+    block_size = Cfg.block_size
     ret_list = []
     # 高度，宽度
     max_x = len(img_list)
@@ -78,6 +78,26 @@ def get_change_list(old_img_list, img_list):
                 ret_list.append(ret_range)
     return ret_list
 
+# 获取开始点列表
+def get_begin_pos_list():
+    block_size = Cfg.block_size
+    img_range = Cfg.img_range
+    ret_list = []
+    # 高度，宽度
+    max_x = img_range[2] - img_range[0]
+    max_y = img_range[3] - img_range[1]
+    
+    x_block_num = math.ceil(max_x/block_size)
+    y_block_num = math.ceil(max_y/block_size)
+    # 遍历y图片块
+    for y_block in range(y_block_num):
+        # 遍历x图片块
+        for x_block in range(x_block_num):
+            # 起始点
+            begin_pos = [x_block*block_size, y_block*block_size]
+            ret_list.append(begin_pos)
+    return ret_list
+
 # 两个列表，开始到结束的位置是否相同
 def list_is_identical(list_a, list_b, begin_pos, end_pos):
     # 根据list修改end_pos
@@ -93,7 +113,7 @@ def list_is_identical(list_a, list_b, begin_pos, end_pos):
             a_pos = list_a[pos_x][pos_y]
             b_pos = list_b[pos_x][pos_y]
             if a_pos != b_pos:
-                return False,[begin_pos ++ [min_x, min_y]]
+                return False,begin_pos + [min_x, min_y]
     return True,[]
 
 # 根据范围获取图片列表
