@@ -57,14 +57,18 @@ old_img_list = []
 # 循环发送截图
 while True:
     # 获取截图数组
+    time_1 = time.time()
     img_list = ImageLib.get_screenshot_list(Cfg.img_range)
+    time_2 = time.time()
     # img_list = ImageLib.get_screenshot_list()
     # 获取变化的位置
     ret_list = ImageLib.get_change_list(old_img_list, img_list)
+    time_3 = time.time()
     send_list = []#[[位置范围，图片数组]]
     for list_range in ret_list:
         ret_range_list = ImageLib.get_list_buy_range(img_list, list_range)
         send_list.append([list_range, ret_range_list])
+    time_4 = time.time()
     
     # 有变化才同步
     if len(send_list) > 0:
@@ -86,6 +90,14 @@ while True:
                 print(err)
                 client_list.remove(tmp_client)
         old_img_list = img_list
+    time_5 = time.time()
+    print("get_screenshot_list:%f, get_change_list:%f, get_list_buy_range:%f, send:%f packd_len:%d"%(
+        time_2 - time_1
+        , time_3 - time_2
+        , time_4 - time_3
+        , time_5 - time_4
+        , packd_len
+    ))
     time.sleep(Cfg.send_sleep)
 
 

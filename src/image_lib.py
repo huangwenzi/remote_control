@@ -29,12 +29,35 @@ def get_screenshot_list(region = False):
         img = pyautogui.screenshot()
     else:
         img = pyautogui.screenshot(region = region)
-    # 这里获得的是np数组 注意dtype
-    array = np.asarray(img, dtype=np.uint8)
-    # np数组转list
-    list = array.tolist()
+        
+    # time_1 = time.time()
+    # # 这里获得的是np数组 注意dtype
+    # array = np.asarray(img, dtype=np.uint8)
+    # # np数组转list
+    # data_list = array.tolist()
+    # time_2 = time.time()
+    
+    # 尝试新算法
+    pixels = img.getdata()
+    data_list_1 = list(pixels)
+    data_list_2 = data_to_two_arr(data_list_1, pixels.size[0])
+    # time_3 = time.time()
+    # print(time_2 - time_1, time_3 - time_2)
+    
     # img.save('image/as_1.png')
-    return list
+    return data_list_2
+
+# 像素数组转二维
+# data ： 像素数据
+# row_max ： row数
+# ps : 
+def data_to_two_arr(data, row_max):
+    two_data = []
+    data_len = len(data)
+    col_max = data_len//row_max
+    for idx in range(0, col_max):
+        two_data.append(data[idx*row_max : idx*row_max + row_max])
+    return two_data
 
 # 获取图片地址转列表
 def get_list_by_path(path):
@@ -129,18 +152,20 @@ def get_list_buy_range(img_list, img_range):
         ret_list.append(y_list)
     return ret_list
 
+
 # old_img_list = get_list_by_path('image/as_1.png')
 # ret_list = get_list_buy_range(old_img_list, [0,0,100,200])
 # img = list_to_image(ret_list)
 # img.save('image/as_11.png')
 
-old_img_list = get_list_by_path('image/as_1.png')
-img_list = get_list_by_path('image/as_2.png')
-ret_list = get_change_list(old_img_list, img_list)
-send_list = []
-for list_range in ret_list:
-    ret_range_list = get_list_buy_range(img_list, list_range)
-    send_list.append([list_range, ret_range_list])
+
+# old_img_list = get_list_by_path('image/as_1.png')
+# img_list = get_list_by_path('image/as_2.png')
+# ret_list = get_change_list(old_img_list, img_list)
+# send_list = []
+# for list_range in ret_list:
+#     ret_range_list = get_list_buy_range(img_list, list_range)
+#     send_list.append([list_range, ret_range_list])
 
 
 # list = image_to_list(get_screenshot())
